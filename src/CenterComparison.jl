@@ -1,9 +1,8 @@
 using VIDA
 import Comrade as CM
 using Plots
-using Pyehtim
 
-in_model = "I0_regrid"
+in_model = "I1_regrid"
 file = joinpath((@__DIR__), "..", "data", in_model*".fits")
 img = VIDA.load_image(file)
 
