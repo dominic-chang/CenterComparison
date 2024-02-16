@@ -8,8 +8,6 @@ img = VIDA.load_image(file)
 
 Plots.plot(img)
 
-bh = VIDA.Bhattacharyya(img)
-
 
 m = CM.MRing(1.0,1.0) # Create ring of 1 radian radius
 Plots.plot(m) # plot the ring
@@ -32,33 +30,34 @@ function ring_model(params)
     return CM.ThreadedModel(CM.shifted(m, μas2rad(x), μas2rad(y)))
 end
 
-VIDA.divergence(bh, m)
-
 #lower bounds on parameters
-lower = (
-    rad = (8),
-    width = (5),
-    α = -1,
-    β = -1,
-    ell = 0,
-    x = (-10),
-    y = (-10),
+lower_bound = (
+    rad = 8.0,
+    width = 0.5,
+    α = -1.0,
+    β = -1.0,
+    ell = 0.0,
+    x = -10.0,
+    y = -10.0,
 )
 
 #upper bounds on parameters
-upper = (
-    rad = (40),
-    width = (40),
-    α = 1,
-    β = 1,
-    ell = 1,
-    x = (10),
-    y = (10),
+upper_bound = (
+    rad = 40.0,
+    width = 40.0,
+    α = 1.0,
+    β = 1.0,
+    ell = 1.0,
+    x = 10.0,
+    y = 10.0,
 )
+bh = VIDA.Bhattacharyya(img) # Loss function for comparison
+VIDA.divergence(bh, m)
+
 # Defines a VIDAproblem type for optimization
 # Takes a divergenced function (bh) and a model function (ring_model)
 # Our choice of optimization requires a search range with lower and upper bounds for the ring model parameters
-prob = VIDA.VIDAProblem(bh, ring_model, lower, upper) 
+prob = VIDA.VIDAProblem(bh, ring_model, lower_bound, upper_bound) 
 f, t, (lb, ub) = VIDA.build_opt(prob, true)
 
 
