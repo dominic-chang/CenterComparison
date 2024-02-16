@@ -84,10 +84,10 @@ try
 catch e
     println(e)
 end
-fileout = open(joinpath(outpath, in_model), "w")
+fileout = open(joinpath(outpath, in_model.*".txt"), "w")
 
-write(fileout, "upper = " * string(upper) * "\n")
-write(fileout, "lower = " * string(lower) * "\n")
+write(fileout, "upper = " * string(upper_bound) * "\n")
+write(fileout, "lower = " * string(lower_bound) * "\n")
 write(fileout, "best_fit = " * string(xopt))
 close(fileout)
 Plots.savefig(fig, joinpath(outpath, in_model*"_triptic.png"))
