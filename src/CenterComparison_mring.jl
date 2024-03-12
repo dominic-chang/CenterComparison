@@ -72,7 +72,7 @@ for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_imag
 
 
     import OptimizationBBO as OBBO
-    count = 0
+    global count = 0
     function callback(state, loss_val; doplot = false) # callback function to print iterations and loss
         global count
         count += 1
