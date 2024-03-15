@@ -3,8 +3,7 @@ import Comrade as CM
 using Plots
 using Pyehtim
 
-#in_model = "I1_regrid.fits"#"I1_a_0.94_i_45_sk_1.0_bphi_1.0_br_1.0_bvapp_0_gfact_3_mp_1.833_gp_-1.815_sp_3.574"
-for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images"))
+for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images"))[31:end]
     in_model = joinpath("selected_sgra_images", file_name)
     file = joinpath((@__DIR__), "..", "data", in_model)
     in_img = ehtim.image.load_image(file)
