@@ -3,7 +3,7 @@ import Comrade as CM
 using Plots
 using Pyehtim
 
-for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images"))[48:end]
+for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images"))[185:end]
     in_model = joinpath("selected_sgra_images", file_name)
     file = joinpath((@__DIR__), "..", "data", in_model)
     in_img = ehtim.image.load_image(file)
