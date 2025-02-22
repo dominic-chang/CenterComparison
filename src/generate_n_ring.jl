@@ -51,28 +51,35 @@ function get_isoradial_curve(θo, a, res)
     return ρφcritvals
 end
 
-function get_isoradial_curve(rs, θo, a, n, res; tolerance = 1.001)
+function get_isoradial_curve(rs, θo, a, n, res; tolerance = 0.001, alpha=0.0001)
     ρφcritvals = get_isoradial_curve(θo, a, res)
     ρφvals = map(
         x -> begin
             ρ, φ = x
             p = [φ, θo, a, n]
-            x0 = [tolerance * ρ]
+            x0 = [tolerance + ρ]
             optprob = OptimizationFunction(
-                (x, p) -> (rs - rad(x, p))^2,
+                (x, p) -> (1 - rad(x, p)/rs)^2,
                 Optimization.AutoEnzyme(),
             )
             prob = Optimization.OptimizationProblem(optprob, x0, p)
-            ans = solve(prob, Adam(; alpha = 1e-5))
+            ans = solve(prob, GradientDescent())
             (ans, φ)
         end,
         ρφcritvals,
     )
+    ρφvals = filter(x -> begin
+        ρ, φ = x
+        p = [φ, θo, a, n]
+        (1 - rad(ρ, p)/rs)^2 < 0.01
+    end,
+    ρφvals)
+    
     return map(x -> (x[1][1] * cos(x[2]), x[1][1] * sin(x[2])), ρφvals)
 end
 
-function generate_n_ring(rs, θo, a, n, bulkres, screenres, xmin, xmax, ymin, ymax)
-    αβvals = get_isoradial_curve(rs, θo, a, n, bulkres)
+function generate_n_ring(rs, θo, a, n, bulkres, screenres, xmin, xmax, ymin, ymax; tolerance = 1.001, alpha=0.0001)
+    αβvals = get_isoradial_curve(rs, θo, a, n, bulkres; tolerance=tolerance, alpha=alpha)
     toppoints = sort(filter(x -> x[2] > 0, αβvals), by = x -> x[1])
     bottompoints = sort(filter(x -> x[2] <= 0, αβvals), by = x -> x[1])
 
