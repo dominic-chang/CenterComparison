@@ -17,3 +17,7 @@ VLBISkyModels = "d6343c73-7174-4e0f-bb64-562643efbeca"
 
 [compat]
 julia = "1"
+Enzyme = "0.13"
+Krang = "0.4"
+Comrade = "0.11"
+CairoMakie = "0.13"
