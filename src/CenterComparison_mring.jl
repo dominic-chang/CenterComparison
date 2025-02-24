@@ -1,6 +1,7 @@
 using VIDA
 import Comrade as CM
 using Plots
+import CairoMakie as cMakie
 using Pyehtim
 
 for file_name in
@@ -38,7 +39,7 @@ for file_name in
         m = CM.MRing([α1, α2], [β1, β2]) # Create ring of 1 radian radius
         m = CM.stretched(m, CM.μas2rad(rad), CM.μas2rad(rad * ell))
         m = CM.smoothed(m, CM.μas2rad(width) / (2 * √(2 * log(2))))
-        return CM.ThreadedModel(CM.shifted(m, μas2rad(x), μas2rad(y)))
+        return CM.shifted(m, μas2rad(x), μas2rad(y))
     end
     #lower bounds on parameters
     lower_bound = (
@@ -87,11 +88,12 @@ for file_name in
     xopt, opt_temp, divmin = vida(
         prob,
         OBBO.BBO_adaptive_de_rand_1_bin();
-        maxiters = 100_000,
+        maxiters = 50_000,
         callback = callback,
     ) #run problem 
     gr = VIDA.imagepixels(μas2rad(100), μas2rad(100), 100, 100)
-    VIDA.intensitymap(opt_temp, gr) |> Plots.plot
+    img_temp =VIDA.intensitymap(opt_temp, gr) 
+    img_temp |> Plots.plot
     xopt
     fig = triptic(img, opt_temp)
 
@@ -108,6 +110,6 @@ for file_name in
     write(fileout, "lower = " * string(lower_bound) * "\n")
     write(fileout, "best_fit = " * string(xopt))
     close(fileout)
-    Plots.savefig(fig, joinpath(outpath, "mring", in_model * "_triptic.png"))
+    cMakie.save(joinpath(outpath, in_model * "_triptic.png"), fig)
 
 end
