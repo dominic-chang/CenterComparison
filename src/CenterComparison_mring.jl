@@ -5,9 +5,9 @@ import CairoMakie as cMakie
 using Pyehtim
 
 for file_name in
-    readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images"))[185:end]
-    in_model = joinpath("selected_sgra_images", file_name)
-    file = joinpath((@__DIR__), "..", "data", in_model)
+    readdir(joinpath(dirname(@__DIR__), "thickRings"))
+    in_model = joinpath("thickRings", file_name)
+    file = joinpath(dirname(@__DIR__), in_model)
     in_img = ehtim.image.load_image(file)
     in_img.display()
 
@@ -15,7 +15,7 @@ for file_name in
     fovx = pyconvert(Float64, in_img.fovx())
     fovy = pyconvert(Float64, in_img.fovy())
     img = IntensityMap(
-        reverse(reshape(pyconvert.(Float64, in_img.imvec), (sze, sze)), dims = 1),
+        reverse(reshape(pyconvert(Vector{Float64}, in_img.imvec), (sze, sze)), dims = 1),
         CM.imagepixels(fovx, fovy, sze, sze),
     )
 
@@ -104,7 +104,7 @@ for file_name in
     catch e
         println(e)
     end
-    fileout = open(joinpath(outpath, "mring", in_model .* ".txt"), "w")
+    fileout = open(joinpath(outpath,  in_model .* ".txt"), "w")
 
     write(fileout, "upper = " * string(upper_bound) * "\n")
     write(fileout, "lower = " * string(lower_bound) * "\n")
