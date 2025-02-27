@@ -25,7 +25,7 @@ n = 0; # sub-image to ray trace
 screenres = 200
 
 camera = Krang.IntensityCamera(metric, θo, -ρmax, ρmax, -ρmax, ρmax, screenres);
-mesh = Krang.Mesh(Krang.ConeGeometry((75 * π / 180)), UniformEmission((n,), rmin, rmax))
+mesh = Krang.Mesh(Krang.ConeGeometry((π / 2.0)), UniformEmission((n,), rmin, rmax))
 scene = Krang.Scene((mesh,))
 
 mat = render(camera, scene)
