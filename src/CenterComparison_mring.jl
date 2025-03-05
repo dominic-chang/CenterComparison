@@ -4,8 +4,7 @@ using Plots
 import CairoMakie as cMakie
 using Pyehtim
 
-for file_name in
-    readdir(joinpath(dirname(@__DIR__), "thickRings"))
+for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
     in_model = joinpath("thickRings", file_name)
     file = joinpath(dirname(@__DIR__), in_model)
     in_img = ehtim.image.load_image(file)
@@ -35,16 +34,25 @@ for file_name in
     # Params: rad, width, α1, β1, α2, β2, ell, x, y
 
     function ring_model(params)
-        (; rad, width, α1, β1, α2, β2, ell, x, y) = params
-        m = CM.MRing([α1, α2], [β1, β2]) # Create ring of 1 radian radius
-        m = CM.stretched(m, CM.μas2rad(rad), CM.μas2rad(rad * ell))
-        m = CM.smoothed(m, CM.μas2rad(width) / (2 * √(2 * log(2))))
+        (; rad, width, rot, α1, β1, α2, β2, ell, x, y) = params
+        #m = CM.MRing([α1, α2], [β1, β2]) # Create ring of 1 radian radius
+        #m = CM.stretched(m, CM.μas2rad(rad), CM.μas2rad(rad * ell))
+        #m = CM.smoothed(m, CM.μas2rad(width) / (2 * √(2 * log(2))))
+        m = CM.smoothed(
+            CM.modify(
+                CM.MRing([α1, α2], [β1, β2]),
+                CM.Stretch(CM.μas2rad(rad), CM.μas2rad(rad * ell)),
+                CM.Rotate(rot),
+            ),
+            CM.μas2rad(width) / (2 * √(2 * log(2))),
+        )
         return CM.shifted(m, μas2rad(x), μas2rad(y))
     end
     #lower bounds on parameters
     lower_bound = (
         rad = 8.0,
         width = 0.5,
+        rot = -1.0π,
         α1 = -1.0,
         β1 = -1.0,
         α2 = -1.0,
@@ -58,6 +66,7 @@ for file_name in
     upper_bound = (
         rad = 50.0,
         width = 80.0,
+        rot = 1.0π,
         α1 = 1.0,
         β1 = 1.0,
         α2 = 1.0,
@@ -92,7 +101,7 @@ for file_name in
         callback = callback,
     ) #run problem 
     gr = VIDA.imagepixels(μas2rad(100), μas2rad(100), 100, 100)
-    img_temp =VIDA.intensitymap(opt_temp, gr) 
+    img_temp = VIDA.intensitymap(opt_temp, gr)
     img_temp |> Plots.plot
     xopt
     fig = triptic(img, opt_temp)
@@ -104,7 +113,7 @@ for file_name in
     catch e
         println(e)
     end
-    fileout = open(joinpath(outpath,  in_model .* ".txt"), "w")
+    fileout = open(joinpath(outpath, in_model .* ".txt"), "w")
 
     write(fileout, "upper = " * string(upper_bound) * "\n")
     write(fileout, "lower = " * string(lower_bound) * "\n")

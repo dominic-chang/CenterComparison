@@ -5,8 +5,7 @@ using Pyehtim
 using VLBISkyModels
 import OptimizationBBO as OBBO
 
-for file_name in
-    readdir(joinpath(dirname(@__DIR__), "thickRings"))
+for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
     in_model = joinpath("thickRings", file_name)
     file = joinpath(dirname(@__DIR__), in_model)
     in_img = ehtim.image.load_image(file)
@@ -35,32 +34,23 @@ for file_name in
 
     function ring_model(params)
         (; rad, rad_rat, shift, rot, ell, x, y) = params
-        m = CM.Crescent(1.0, rad_rat, shift*(1-rad_rat), 0.0) # Create ring of 1 radian radius
+        m = CM.Crescent(1.0, rad_rat, shift * (1 - rad_rat), 0.0) # Create ring of 1 radian radius
         #m = CM.stretched(m, CM.μas2rad(rad), CM.μas2rad(rad * ell))
         #return CM.shifted(m, μas2rad(x), μas2rad(y))
-        return CM.modify(m , Rotate(rot), Stretch(CM.μas2rad(rad), CM.μas2rad(rad * ell)), Shift(μas2rad(x), μas2rad(y)))
+        return CM.modify(
+            m,
+            Rotate(rot),
+            Stretch(CM.μas2rad(rad), CM.μas2rad(rad * ell)),
+            Shift(μas2rad(x), μas2rad(y)),
+        )
     end
     #lower bounds on parameters
-    lower_bound = (
-        rad = 8.0,
-        rad_rat= 0.1,
-        shift = 0.0,
-        rot = 0.0,
-        ell = 0.0,
-        x = -10.0,
-        y = -10.0,
-    )
+    lower_bound =
+        (rad = 8.0, rad_rat = 0.1, shift = 0.0, rot = 0.0, ell = 0.0, x = -10.0, y = -10.0)
 
     #upper bounds on parameters
-    upper_bound = (
-        rad = 50.0,
-        rad_rat= 0.99,
-        shift = 1.0,
-        rot = 2π,
-        ell = 1.0,
-        x = 10.0,
-        y = 10.0,
-    )
+    upper_bound =
+        (rad = 50.0, rad_rat = 0.99, shift = 1.0, rot = 2π, ell = 1.0, x = 10.0, y = 10.0)
     bh = VIDA.NxCorr(img) # Loss function for comparison
 
     # Defines a VIDAproblem type for optimization
@@ -86,7 +76,7 @@ for file_name in
         callback = callback,
     ) #run problem 
     gr = VIDA.imagepixels(μas2rad(100), μas2rad(100), 100, 100)
-    img_temp =VIDA.intensitymap(opt_temp, gr) 
+    img_temp = VIDA.intensitymap(opt_temp, gr)
     img_temp |> cMakie.plot
     xopt
     fig = triptic(img, opt_temp)
@@ -94,12 +84,12 @@ for file_name in
     # Save results
     outpath = joinpath((@__DIR__), "..", "results", "crescent")
     mkpath(outpath)
-    fileout = open(joinpath(outpath,  file_name.* ".txt"), "w")
+    fileout = open(joinpath(outpath, file_name .* ".txt"), "w")
 
     write(fileout, "upper = " * string(upper_bound) * "\n")
     write(fileout, "lower = " * string(lower_bound) * "\n")
     write(fileout, "best_fit = " * string(xopt))
     close(fileout)
-    cMakie.save(joinpath(outpath, file_name* "_triptic.png"), fig)
+    cMakie.save(joinpath(outpath, file_name * "_triptic.png"), fig)
 
 end
