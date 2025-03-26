@@ -3,10 +3,12 @@ import Comrade as CM
 using Plots
 import CairoMakie as cMakie
 using Pyehtim
+import OptimizationBBO as OBBO
 
-for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
-    in_model = joinpath("thickRings", file_name)
-    file = joinpath(dirname(@__DIR__), in_model)
+for file_name in filter(x->match(r".*all\.h5", x) == nothing,readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images")))
+
+    in_model = joinpath(file_name)
+    file = joinpath(dirname(@__DIR__),"data", "selected_sgra_images", in_model)
     in_img = ehtim.image.load_image(file)
     in_img.display()
 
@@ -15,7 +17,7 @@ for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
     fovy = pyconvert(Float64, in_img.fovy())
     img = IntensityMap(
         reverse(reshape(pyconvert(Vector{Float64}, in_img.imvec), (sze, sze)), dims = 1),
-        CM.imagepixels(fovx, fovy, sze, sze),
+        CM.imagepixels(fovx, fovy, sze, sze, executor=ThreadsEx()),
     )
 
     Plots.plot(img)
@@ -84,7 +86,6 @@ for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
     f, t, (lb, ub) = VIDA.build_opt(prob, true)
 
 
-    import OptimizationBBO as OBBO
     global count = 0
     function callback(state, loss_val; doplot = false) # callback function to print iterations and loss
         global count
@@ -107,7 +108,7 @@ for file_name in readdir(joinpath(dirname(@__DIR__), "thickRings"))
     fig = triptic(img, opt_temp)
 
     # Save results
-    outpath = joinpath((@__DIR__), "..", "results")
+    outpath = joinpath((@__DIR__), "..", "results", "mring_george")
     try
         mkdir(outpath)
     catch e
