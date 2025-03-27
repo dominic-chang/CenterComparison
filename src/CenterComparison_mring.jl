@@ -5,7 +5,11 @@ import CairoMakie as cMakie
 using Pyehtim
 import OptimizationBBO as OBBO
 
-for file_name in filter(x->match(r".*all\.h5", x) == nothing,readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images")))
+fn1(y) = filter(x->match(r".*all\.h5", x) == nothing, y)
+fn2(y) = filter(x->match(r"([^_]*_){2}1_0230.*\.h5",x) != nothing, y)
+
+for file_name in readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images")) |> fn1 |> fn2
+#for file_name in filter(x->match(r".*all\.h5", x) == nothing,readdir(joinpath(dirname(@__DIR__), "data", "selected_sgra_images")))
 
     in_model = joinpath(file_name)
     file = joinpath(dirname(@__DIR__),"data", "selected_sgra_images", in_model)
