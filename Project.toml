@@ -16,9 +16,9 @@ VIDA = "4096cdfb-f084-40a3-b02d-1a2a54920cb8"
 VLBISkyModels = "d6343c73-7174-4e0f-bb64-562643efbeca"
 
 [compat]
-julia = "1"
+CairoMakie = "0.13"
+Comrade = "0.11"
 Enzyme = "0.13"
 Krang = "0.4"
-Comrade = "0.11"
-CairoMakie = "0.13"
 VIDA = "0.13"
+julia = "1"
