@@ -5,17 +5,30 @@ import CairoMakie as cMakie
 using Pyehtim
 import OptimizationBBO as OBBO
 import OptimizationOptimJL
+using Distributed
 
-fn1(y) = filter(x->match(r".*nall_tavg\.fits", x) != nothing, y)
-readdir(joinpath(dirname(@__DIR__), "data", "tavgs_fits_480")) |> fn1
+addprocs(4)
+@everywhere begin
+    using Pkg; Pkg.activate(dirname(@__DIR__))
+    using VIDA
+    import Comrade as CM
+    using Plots
+    import CairoMakie as cMakie
+    using Pyehtim
+    import OptimizationBBO as OBBO
+    import OptimizationOptimJL
+    using Distributed
+
+    fn1(y) = filter(x->match(r".*nall_tavg\.fits", x) != nothing, y)
+    (readdir("/n/holylabs/doeleman_lab/Users/dochang/tavgs_fits_480") |> fn1)
+end
 
 
-
-for file_name in (readdir(joinpath(dirname(@__DIR__), "data", "tavgs_fits_480")) |> fn1)[6:end]
+pmap(((readdir(joinpath("/n","holylabs","doeleman_lab","Users","dochang", "tavgs_fits_480")) |> fn1))) do file_name
 
 
     in_model = joinpath(file_name)
-    file = joinpath(dirname(@__DIR__),"data", "tavgs_fits_480", in_model)
+    file = joinpath("/n","holylabs","doeleman_lab","Users","dochang", "tavgs_fits_480", in_model)
 
     in_img = ehtim.image.load_image(file)
     in_img.display()
@@ -79,7 +92,7 @@ for file_name in (readdir(joinpath(dirname(@__DIR__), "data", "tavgs_fits_480"))
         )
         return CM.shifted(model, μas2rad(x), μas2rad(y))
     end
-    function two_floored_mring(params)
+    function _two_floored_mring(params)
         (;rad2, width2, rot2, α12, β12, α22, β22, ell2, floor2, x2, y2, flux_rat) = params
         return flux_rat*floored_mring(params) + (1-flux_rat)*floored_mring((rad=rad2, width=width2, rot=rot2, α1=α12, β1=β12, α2=α22, β2=β22, ell=ell2, floor=floor2, x=x2, y=y2))
 
@@ -142,28 +155,28 @@ for file_name in (readdir(joinpath(dirname(@__DIR__), "data", "tavgs_fits_480"))
     # Defines a VIDAproblem type for optimization
     # Takes a divergenced function (bh) and a model function (ring_model)
     # Our choice of optimization requires a search range with lower and upper bounds for the ring model parameters
-    prob = VIDA.VIDAProblem(bh, two_floored_mring, lower_bound, upper_bound)
+    prob = VIDA.VIDAProblem(bh, _two_floored_mring, lower_bound, upper_bound)
     f, t, (lb, ub) = VIDA.build_opt(prob, true)
 
 
-    global count = 0
+    global cnt = 0
     gr = VIDA.imagepixels(μas2rad(100), μas2rad(100), 100, 100)
     f, t, (lb, ub) = VIDA.build_opt(prob, true)
     function callback(state, loss_val; doplot = false) # callback function to print iterations and loss
-        global count
-        count += 1
-        if count % 100 |> iszero
-            println("$count: $loss_val")
-            xopt = VIDA.HypercubeTransform.transform(t, state.u)
-            img = VIDA.intensitymap(two_floored_mring(xopt), gr) |> imageviz
-            display(img)
+        global cnt
+        cnt += 1
+        if cnt % 100 |> iszero
+            println("$cnt: $loss_val")
+            #xopt = VIDA.HypercubeTransform.transform(t, state.u)
+            #tempimg = VIDA.intensitymap(two_floored_mring(xopt), gr) |> imageviz
+            #display(tempimg)
         end
         return false
     end
     xopt, opt_temp, divmin = vida(
         prob,
         OBBO.BBO_adaptive_de_rand_1_bin();
-        maxiters = 200_000,
+        maxiters = 400_000,
         callback = callback,
     ) #run problem 
     gr = VIDA.imagepixels(μas2rad(100), μas2rad(100), 100, 100)
